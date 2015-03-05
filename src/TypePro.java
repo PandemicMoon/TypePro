@@ -3,15 +3,25 @@ import java.awt.event.*;
 import java.awt.*;
 import java.io.*;
 import javax.swing.filechooser.*;
+import javax.swing.border.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
+import java.util.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 public class TypePro extends JFrame {
   
-  String programName = "Type Pro - Version 1.7"; 
+  String programName = "Type Pro - Version 1.10"; 
   String fileName;
   JFrame frame;
   JTextArea typeArea;
   String fileURI = "none";
   ImageIcon img;
+  String prevText;
+  JPanel statusPanel;
+  Boolean statusBarToggle;
   
   public TypePro() {
     try {
@@ -29,6 +39,20 @@ public class TypePro extends JFrame {
     frame.setTitle(getTitle());
     frame.setExtendedState(Frame.MAXIMIZED_BOTH);
     frame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+    statusBarToggle = false;
+    
+    statusPanel = new JPanel();
+    statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
+    frame.add(statusPanel, BorderLayout.SOUTH);
+    statusPanel.setPreferredSize(new Dimension(frame.getWidth(), 16));
+    statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
+    JLabel statusLabel = new JLabel();
+    statusLabel.setHorizontalAlignment(SwingConstants.LEFT);
+    statusPanel.add(statusLabel);
+    frame.add(statusPanel, BorderLayout.SOUTH);
+    
+    frame.remove(statusPanel);
+    statusLabel.setText("Line: 1, Column: 0");
     
     JMenuBar menu = new JMenuBar();
     JMenu file = new JMenu("File");
@@ -43,9 +67,12 @@ public class TypePro extends JFrame {
     JMenuItem copy = new JMenuItem("Copy");
     JMenuItem paste = new JMenuItem("Paste");
     JMenuItem selectAll = new JMenuItem("Select All");
+    JMenuItem dateAndTime = new JMenuItem("Date/Time");
     JMenu format = new JMenu("Format");
     JMenuItem font = new JMenuItem("Font");
     JMenuItem wordWrapping = new JMenuItem("Word Wrapping");
+    JMenu view = new JMenu("View");
+    JMenuItem statusBar = new JMenuItem("Status Bar");
     JMenu info = new JMenu("Info");
     JMenuItem help = new JMenuItem("Help");
     JMenuItem about = new JMenuItem("About");
@@ -55,6 +82,15 @@ public class TypePro extends JFrame {
     exit.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
+        if (typeArea.getText() != null && !typeArea.getText().equals("") && !sameText()) {
+          Object[] options = { "Yes", "No" };
+          int selected = JOptionPane.showOptionDialog(frame, "Do you wish to save?", "Save", 
+                                                      JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, 
+                                                      null, options, options[0]);
+          if (selected == 0) {
+            save();
+          }
+        }
         System.exit(0);
       }
     });
@@ -104,7 +140,7 @@ public class TypePro extends JFrame {
     close.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        if (!typeArea.getText().equals("") && typeArea.getText() != null) {
+        if (typeArea.getText() != null && !typeArea.getText().equals("")) {
           Object[] options = { "Yes", "No" };
           int selected = JOptionPane.showOptionDialog(frame, "Do you wish to save?", "Save", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
           if (selected == 0) {
@@ -113,6 +149,7 @@ public class TypePro extends JFrame {
         }
         fileURI = "none";
         typeArea.setText("");
+        prevText = null;
         frame.setTitle(getTitle());
       }
     });
@@ -153,6 +190,17 @@ public class TypePro extends JFrame {
       }
     });
     
+    dateAndTime.setMnemonic(KeyEvent.VK_S);
+    dateAndTime.setToolTipText("Insert Date And Time");
+    dateAndTime.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent event) {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        Date date = new Date();
+        typeArea.insert(dateFormat.format(date), typeArea.getCaret().getMark());
+      }
+    });
+    
     font.setMnemonic(KeyEvent.VK_F);
     font.setToolTipText("Select Font");
     font.addActionListener(new ActionListener() {
@@ -175,10 +223,25 @@ public class TypePro extends JFrame {
       public void actionPerformed(ActionEvent event) {
         if (typeArea.getWrapStyleWord() == true) {
           typeArea.setWrapStyleWord(false);
-          System.out.println("Set Word Wrapping to " + typeArea.getWrapStyleWord() + "(supposed to be false).");
         } else {
           typeArea.setWrapStyleWord(true);
-          System.out.println("Set Word Wrapping to " + typeArea.getWrapStyleWord() + "(supposed to be true).");
+        }
+      }
+    });
+    
+    statusBar.setMnemonic(KeyEvent.VK_S);
+    statusBar.setToolTipText("Toggle Status Bar");
+    statusBar.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent event) {
+        if (statusBarToggle) {
+          frame.remove(statusPanel);
+          statusBarToggle = false;
+          frame.setVisible(true);
+        } else {
+          frame.add(statusPanel, BorderLayout.SOUTH);
+          statusBarToggle = true;
+          frame.setVisible(true);
         }
       }
     });
@@ -188,7 +251,8 @@ public class TypePro extends JFrame {
     help.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        
+        JOptionPane.showMessageDialog(frame, "Help Center coming soon.", "Type Pro Help", 
+                                      JOptionPane.QUESTION_MESSAGE/*, img*/);
       }
     });
     
@@ -197,9 +261,8 @@ public class TypePro extends JFrame {
     about.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        JOptionPane.showMessageDialog(frame, "Your text file editing just got easier." + 
-                                      "\nMade By Pandemic Moon." + 
-                                      "\nHandcoded to perfection.", "About Type Pro", 
+        JOptionPane.showMessageDialog(frame, "A simple text file editor." + 
+                                      "\nHandcoded By Pandemic Moon.", "About Type Pro", 
                                       JOptionPane.INFORMATION_MESSAGE, img);
       }
     });
@@ -216,11 +279,15 @@ public class TypePro extends JFrame {
     edit.add(copy);
     edit.add(paste);
     edit.add(selectAll);
+    edit.add(dateAndTime);
     menu.add(edit);
     
     format.add(wordWrapping);
     format.add(font);
     menu.add(format);
+    
+    view.add(statusBar);
+    menu.add(view);
     
     info.add(help);
     info.add(about);
@@ -232,6 +299,41 @@ public class TypePro extends JFrame {
     typeArea.setCaretPosition(typeArea.getDocument().getLength());
     typeArea.setDragEnabled(true);
     
+    // Add a caretListener to q7+40 typeArea.
+    typeArea.addCaretListener(new CaretListener() {
+      // Each time the caret is moved, it will trigger the listener and its method caretUpdate.
+      // It will then pass the event to the update method including the source of the event (which is our textarea control)
+      public void caretUpdate(CaretEvent e) {
+        JTextArea editArea = (JTextArea)e.getSource();
+        
+        // Lets start with some default values for the line and column.
+        int linenum = 1;
+        int columnnum = 1;
+        
+        // We create a try catch to catch any exceptions. We will simply ignore such an error for our demonstration.
+        try {
+          // First we find the position of the caret. This is the number of where the caret is in relation to the start of the JTextArea
+          // in the upper left corner. We use this position to find offset values (eg what line we are on for the given position as well as
+          // what position that line starts on.
+          int caretpos = editArea.getCaretPosition();
+          linenum = editArea.getLineOfOffset(caretpos);
+          
+          // We subtract the offset of where our line starts from the overall caret position.
+          // So lets say that we are on line 5 and that line starts at caret position 100, if our caret position is currently 106
+          // we know that we must be on column 6 of line 5.
+          columnnum = caretpos - editArea.getLineStartOffset(linenum);
+          
+          // We have to add one here because line numbers start at 0 for getLineOfOffset and we want it to start at 1 for display.
+          linenum += 1;
+        }
+        catch(Exception ex) { }
+        
+        // Once we know the position of the line and the column, pass it to a helper function for updating the status bar.
+        statusLabel.setText("Line: " + linenum + ", Column: " + columnnum);
+      }
+    });
+
+
     JScrollPane scrollPane = new JScrollPane(typeArea,
     JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
     JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -240,16 +342,19 @@ public class TypePro extends JFrame {
     frame.addWindowListener(new WindowAdapter() {
       
       public void windowClosing(WindowEvent e) {
-        Object[] options = { "Yes", "No" };
-        int selected = JOptionPane.showOptionDialog(frame, "Do you wish to save?", "Save", 
+        if (typeArea.getText() != null && !typeArea.getText().equals("") && !sameText()) {
+          Object[] options = { "Yes", "No" };
+          int selected = JOptionPane.showOptionDialog(frame, "Do you wish to save?", "Save", 
                                                     JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, 
                                                     null, options, options[0]);
-        if (selected == 0) {
-          save();
+          if (selected == 0) {
+            save();
+          }
         }
         System.exit(0);
       }
     });
+
     frame.setVisible(true);
   }
   
@@ -273,6 +378,7 @@ public class TypePro extends JFrame {
         JOptionPane.showMessageDialog(frame, "Error: /n" + e, "Error", JOptionPane.ERROR_MESSAGE);
       }
       fileURI = name;
+      prevText = typeArea.getText();
     }
   }
   
@@ -307,6 +413,7 @@ public class TypePro extends JFrame {
       }
       frame.setTitle(getTitle());
     }
+    prevText = typeArea.getText();
   }
   
   public String saveAs() {
@@ -332,9 +439,18 @@ public class TypePro extends JFrame {
   }
   
   public String getTitle() {
-    if (fileURI.equals("none") || fileURI == null)
+    if (fileURI == null || fileURI.equals("none"))
       return programName;
     else
       return fileName + " - " + programName;
+  }
+  
+  public Boolean sameText() {
+    if (prevText == null)
+      return false;
+    else if (prevText.equals(typeArea.getText()))
+      return true;
+    else
+      return false;
   }
 }
