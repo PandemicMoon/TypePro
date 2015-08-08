@@ -4,24 +4,47 @@ import java.awt.*;
 import java.io.*;
 import javax.swing.filechooser.*;
 import javax.swing.border.*;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
-import java.util.Date;
+import javax.swing.event.*;
+import java.util.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import javax.swing.undo.*;
 
-public class TypePro extends JFrame {
+public class TypePro extends JFrame implements KeyListener {
   
-  String programName = "Type Pro - Version 1.10"; 
-  String fileName;
-  JFrame frame;
-  JTextArea typeArea;
-  String fileURI = "none";
-  ImageIcon img;
-  String prevText;
-  JPanel statusPanel;
-  Boolean statusBarToggle;
+  private String programName = "Type Pro - Version 1.2.1"; 
+  private String fileName;
+  private JFrame frame;
+  private JTextArea typeArea;
+  private String fileURI = "none";
+  private ImageIcon img;
+  private String prevText;
+  private JPanel statusPanel;
+  private Boolean statusBarToggle;
+  private JMenuBar menu;
+  private JMenu file;
+  private JMenuItem open;
+  private JMenuItem save;
+  private JMenuItem saveAs;
+  private JMenuItem print;
+  private JMenuItem close;
+  private JMenuItem exit;
+  private JMenu edit;
+  private JMenuItem undo;
+  private JMenuItem cut;
+  private JMenuItem copy;
+  private JMenuItem paste;
+  private JMenuItem selectAll;
+  private JMenuItem dateAndTime;
+  private JMenu format;
+  private JMenuItem font;
+  private JMenuItem wordWrapping;
+  private JMenu view;
+  private JMenuItem statusBar;
+  private JMenu info;
+  private JMenuItem help;
+  private JMenuItem about;
+  private UndoManager undoManager;
   
   public TypePro() {
     try {
@@ -54,28 +77,43 @@ public class TypePro extends JFrame {
     frame.remove(statusPanel);
     statusLabel.setText("Line: 1, Column: 0");
     
-    JMenuBar menu = new JMenuBar();
-    JMenu file = new JMenu("File");
-    JMenuItem open = new JMenuItem("Open");
-    JMenuItem save = new JMenuItem("Save");
-    JMenuItem saveAs = new JMenuItem("Save As");
-    JMenuItem print = new JMenuItem("Print");
-    JMenuItem close = new JMenuItem("Close");
-    JMenuItem exit = new JMenuItem("Exit");
-    JMenu edit = new JMenu("Edit");
-    JMenuItem cut = new JMenuItem("Cut");
-    JMenuItem copy = new JMenuItem("Copy");
-    JMenuItem paste = new JMenuItem("Paste");
-    JMenuItem selectAll = new JMenuItem("Select All");
-    JMenuItem dateAndTime = new JMenuItem("Date/Time");
-    JMenu format = new JMenu("Format");
-    JMenuItem font = new JMenuItem("Font");
-    JMenuItem wordWrapping = new JMenuItem("Word Wrapping");
-    JMenu view = new JMenu("View");
-    JMenuItem statusBar = new JMenuItem("Status Bar");
-    JMenu info = new JMenu("Info");
-    JMenuItem help = new JMenuItem("Help");
-    JMenuItem about = new JMenuItem("About");
+    typeArea = new JTextArea();
+    typeArea.setCaretPosition(typeArea.getDocument().getLength());
+    typeArea.setDragEnabled(true);
+    typeArea.addKeyListener(this);
+    undoManager = new UndoManager();
+    typeArea.getDocument().addUndoableEditListener(new UndoableEditListener() {
+      @Override
+      public void undoableEditHappened(UndoableEditEvent e) {
+        
+        undoManager.addEdit(e.getEdit());
+        
+      }
+    });
+    
+    menu = new JMenuBar();
+    file = new JMenu("File");
+    open = new JMenuItem("Open             \tCtrl + O");
+    save = new JMenuItem("Save              \tCtrl + S");
+    saveAs = new JMenuItem("Save As         \tCtrl + Q");
+    print = new JMenuItem("Print              \tCtrl + P");
+    close = new JMenuItem("Close            \tCtrl + N");
+    exit = new JMenuItem("Exit");
+    edit = new JMenu("Edit");
+    undo = new JMenuItem("Undo             \tCtrl + Z");
+    cut = new JMenuItem("Cut                \tCtrl + X");
+    copy = new JMenuItem("Copy             \tCtrl + C");
+    paste = new JMenuItem("Paste             \tCtrl + V");
+    selectAll = new JMenuItem("Select All      \tCtrl + A");
+    dateAndTime = new JMenuItem("Date/Time    \tF5");
+    format = new JMenu("Format");
+    font = new JMenuItem("Font");
+    wordWrapping = new JCheckBoxMenuItem("Word Wrapping");
+    view = new JMenu("View");
+    statusBar = new JCheckBoxMenuItem("Status Bar");
+    info = new JMenu("Info");
+    help = new JMenuItem("Help");
+    about = new JMenuItem("About");
     
     exit.setMnemonic(KeyEvent.VK_E);
     exit.setToolTipText("Exit Type Pro");
@@ -88,10 +126,19 @@ public class TypePro extends JFrame {
                                                       JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, 
                                                       null, options, options[0]);
           if (selected == 0) {
-            save();
+            save(false);
           }
         }
         System.exit(0);
+      }
+    });
+    
+    undo.setMnemonic(KeyEvent.VK_O);
+    undo.setToolTipText("Undo Last Edit");
+    undo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent event) {
+        undo();
       }
     });
     
@@ -109,7 +156,7 @@ public class TypePro extends JFrame {
     save.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        save();
+        save(false);
       }
     });
     
@@ -118,7 +165,7 @@ public class TypePro extends JFrame {
     saveAs.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        save();
+        save(true);
       }
     });
     
@@ -140,17 +187,7 @@ public class TypePro extends JFrame {
     close.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        if (typeArea.getText() != null && !typeArea.getText().equals("")) {
-          Object[] options = { "Yes", "No" };
-          int selected = JOptionPane.showOptionDialog(frame, "Do you wish to save?", "Save", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-          if (selected == 0) {
-            save();
-          }
-        }
-        fileURI = "none";
-        typeArea.setText("");
-        prevText = null;
-        frame.setTitle(getTitle());
+        close();
       }
     });
     
@@ -195,9 +232,7 @@ public class TypePro extends JFrame {
     dateAndTime.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        Date date = new Date();
-        typeArea.insert(dateFormat.format(date), typeArea.getCaret().getMark());
+        insertDateAndTime();
       }
     });
     
@@ -217,7 +252,7 @@ public class TypePro extends JFrame {
     });
     
     wordWrapping.setMnemonic(KeyEvent.VK_W);
-    wordWrapping.setToolTipText("Enable/Disable Word Wrapping");
+    wordWrapping.setToolTipText("Toggle Word Wrapping");
     wordWrapping.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
@@ -270,14 +305,19 @@ public class TypePro extends JFrame {
     file.add(open);
     file.add(saveAs);
     file.add(save);
+    file.add(new JSeparator());
     file.add(print);
+    file.add(new JSeparator());
     file.add(close);
     file.add(exit);
     menu.add(file);
     
+    edit.add(undo);
+    edit.add(new JSeparator());
     edit.add(cut);
     edit.add(copy);
     edit.add(paste);
+    edit.add(new JSeparator());
     edit.add(selectAll);
     edit.add(dateAndTime);
     menu.add(edit);
@@ -290,14 +330,11 @@ public class TypePro extends JFrame {
     menu.add(view);
     
     info.add(help);
+    info.add(new JSeparator());
     info.add(about);
     menu.add(info);
     
     frame.setJMenuBar(menu);
-    
-    typeArea = new JTextArea();
-    typeArea.setCaretPosition(typeArea.getDocument().getLength());
-    typeArea.setDragEnabled(true);
     
     // Add a caretListener to q7+40 typeArea.
     typeArea.addCaretListener(new CaretListener() {
@@ -348,29 +385,51 @@ public class TypePro extends JFrame {
                                                     JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, 
                                                     null, options, options[0]);
           if (selected == 0) {
-            save();
+            save(false);
           }
         }
         System.exit(0);
       }
     });
+    frame.addWindowFocusListener(new WindowAdapter() {
+      public void windowGainedFocus(WindowEvent e) {
+        typeArea.requestFocusInWindow();
+      }
+    });
+
 
     frame.setVisible(true);
   }
   
-  public void save() {
+  public void save(Boolean override) {
     String name = fileURI;
-    if (fileURI.equals("none")) {
+    Boolean changed = false;
+    if (name.equals("none") || override == true) {
       String save = saveAs();
-      if (save != null)
+      //System.out.println(save);
+      if (save != null) {
         name = save;
+        changed = true;
+      }
       /*name = JOptionPane.showInputDialog(frame, "Save File As (.txt will be added to end)", "Save", 
                                          JOptionPane.INFORMATION_MESSAGE);
       name = name + ".txt";*/
       frame.setTitle(getTitle());
-    }
-    if (!fileURI.equals("none")) {
+    } 
+    if (!name.equals("none")) {
       try {
+        File f = new File(name);
+        if(!f.exists() && !f.isDirectory()) { 
+          f.createNewFile();
+        } else if (changed == true && !sameText()) {
+          Object[] options = { "Yes", "No" };
+          int selected = JOptionPane.showOptionDialog(frame, "This file already exists.\nDo you wish to override it?", 
+                                                      "Save", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, 
+                                                      null, options, options[0]);
+          if (selected == 1) {
+            return;
+          }
+        }
         BufferedWriter out = new BufferedWriter(new FileWriter(name));
         typeArea.write(out);
         out.close();
@@ -385,7 +444,7 @@ public class TypePro extends JFrame {
   public void open() {
     JFileChooser chooser = new JFileChooser();
     if (!typeArea.getText().equals("") && typeArea.getText() != null)
-      save();
+      save(false);
     typeArea.setText("");
     FileNameExtensionFilter filter = new FileNameExtensionFilter("Text Files", "txt");
     chooser.setFileFilter(filter);
@@ -423,13 +482,8 @@ public class TypePro extends JFrame {
     int returnVal = chooser.showSaveDialog(frame);
     if(returnVal == JFileChooser.APPROVE_OPTION) {
       System.out.println("You chose to save this file as: " + chooser.getSelectedFile().getName());
-      if (chooser.getSelectedFile().getAbsolutePath().contains(".txt")) {
-        fileName = chooser.getSelectedFile().getName();
-        return chooser.getSelectedFile().getAbsolutePath();
-      } else {
-        fileName = chooser.getSelectedFile().getName() + ".txt";
-        return chooser.getSelectedFile().getAbsolutePath() + ".txt";
-      }
+      fileName = chooser.getSelectedFile().getName();
+      return chooser.getSelectedFile().getAbsolutePath();
     } else
       return null;
   }
@@ -453,4 +507,78 @@ public class TypePro extends JFrame {
     else
       return false;
   }
+  
+  public void undo() {
+    try {
+      if (undoManager.canUndo()) {
+        undoManager.undo();
+      }
+    } catch (CannotUndoException exp) {
+      exp.printStackTrace();
+    }
+  }
+  
+  public void redo() {
+    try {
+      if (undoManager.canRedo()) {
+        undoManager.redo();
+      }
+    } catch (CannotUndoException exp) {
+      exp.printStackTrace();
+    }
+  }
+  
+  public void close() {
+    if (typeArea.getText() != null && !typeArea.getText().equals("")) {
+      Object[] options = { "Yes", "No" };
+      int selected = JOptionPane.showOptionDialog(frame, "Do you wish to save?", "Save", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+      if (selected == 0) {
+        save(false);
+      }
+    }
+    fileURI = "none";
+    typeArea.setText("");
+    prevText = null;
+    frame.setTitle(getTitle());
+  }
+  
+  public void insertDateAndTime() {
+    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+    Date date = new Date();
+    typeArea.insert(dateFormat.format(date), typeArea.getCaret().getMark());
+  }
+  
+  public void keyReleased(KeyEvent e) {
+    //ignore
+  }
+  
+  public void keyPressed(KeyEvent e) {
+    System.out.println("KeyPressed("+e.getKeyCode()+") called! Control/Meta Down == " + (e.isControlDown() || e.isMetaDown()));
+    if (e.getKeyCode() == KeyEvent.VK_Z && (e.isControlDown() || e.isMetaDown())) {
+      undo();
+    } else if (e.getKeyCode() == KeyEvent.VK_Y && (e.isControlDown() || e.isMetaDown())) {
+      redo();
+    } else if (e.getKeyCode() == KeyEvent.VK_N && (e.isControlDown() || e.isMetaDown())) {
+      close();
+    } else if (e.getKeyCode() == KeyEvent.VK_O && (e.isControlDown() || e.isMetaDown())) {
+      open();
+    } else if (e.getKeyCode() == KeyEvent.VK_S && (e.isControlDown() || e.isMetaDown())) {
+      save(false);
+    } else if (e.getKeyCode() == KeyEvent.VK_Q && (e.isControlDown() || e.isMetaDown())) {
+      save(true);
+    } else if (e.getKeyCode() == KeyEvent.VK_P && (e.isControlDown() || e.isMetaDown())) {
+      try {
+        typeArea.print();
+      } catch (Exception ex) { 
+        JOptionPane.showMessageDialog(frame, "Error: /n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+      }
+    } else if (e.getKeyCode() == KeyEvent.VK_F5) {
+      insertDateAndTime();
+    }
+  } 
+  
+  public void keyTyped(KeyEvent e) {
+    //ignore
+  }
+  
 }
