@@ -9,10 +9,11 @@ import java.util.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import javax.swing.undo.*;
+import java.net.URL;
 
 public class TypePro extends JFrame implements KeyListener {
   
-  private String programName = "Type Pro - Version 1.2.1"; 
+  private String programName = "Type Pro - Version 1.2.2"; 
   private String fileName;
   private JFrame frame;
   private JTextArea typeArea;
@@ -57,8 +58,8 @@ public class TypePro extends JFrame implements KeyListener {
   
   public void initFile() {
     frame = new JFrame();
-    img = new ImageIcon("logo.png");
-    frame.setIconImage(img.getImage());
+    URL url = this.getClass().getResource("logo.png");
+    frame.setIconImage(new ImageIcon(url).getImage());
     frame.setTitle(getTitle());
     frame.setExtendedState(Frame.MAXIMIZED_BOTH);
     frame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
