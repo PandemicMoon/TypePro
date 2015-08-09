@@ -13,7 +13,7 @@ import java.net.URL;
 
 public class TypePro extends JFrame implements KeyListener {
   
-  private String programName = "Type Pro - Version 1.2.3"; 
+  private String programName = "Type Pro - Version 1.2.4"; 
   private String fileName;
   private JFrame frame;
   private JTextArea typeArea;
@@ -454,8 +454,10 @@ public class TypePro extends JFrame implements KeyListener {
         String line = in.readLine();
         while (line != null)
         {
-          typeArea.append(line + "\n");
+          typeArea.append(line);
           line = in.readLine();
+          if (line != null)
+            typeArea.append("\n");
         }
         in.close();
       } catch (Exception e) { 
