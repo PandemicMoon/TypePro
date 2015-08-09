@@ -10,10 +10,11 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import javax.swing.undo.*;
 import java.net.URL;
+import java.nio.channels.*;
 
 public class TypePro extends JFrame implements KeyListener {
   
-  private String programName = "Type Pro - Version 1.2.4"; 
+  private String programName = "Type Pro - Version 1.2.6"; 
   private String fileName;
   private JFrame frame;
   private JTextArea typeArea;
@@ -44,6 +45,7 @@ public class TypePro extends JFrame implements KeyListener {
   private JMenuItem statusBar;
   private JMenu info;
   private JMenuItem help;
+  private JMenuItem update;
   private JMenuItem about;
   private UndoManager undoManager;
   
@@ -115,6 +117,7 @@ public class TypePro extends JFrame implements KeyListener {
     statusBar = new JCheckBoxMenuItem("Status Bar");
     info = new JMenu("Info");
     help = new JMenuItem("Help");
+    update = new JMenuItem("Update");
     about = new JMenuItem("About");
     
     exit.setMnemonic(KeyEvent.VK_E);
@@ -295,6 +298,15 @@ public class TypePro extends JFrame implements KeyListener {
       }
     });
     
+    update.setMnemonic(KeyEvent.VK_U);
+    update.setToolTipText("Update TypePro");
+    update.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent event) {
+        update();
+      }
+    });
+    
     about.setMnemonic(KeyEvent.VK_A);
     about.setToolTipText("About Type Pro");
     about.addActionListener(new ActionListener() {
@@ -334,6 +346,7 @@ public class TypePro extends JFrame implements KeyListener {
     menu.add(view);
     
     info.add(help);
+    info.add(update);
     info.add(new JSeparator());
     info.add(about);
     menu.add(info);
@@ -425,7 +438,7 @@ public class TypePro extends JFrame implements KeyListener {
         typeArea.write(out);
         out.close();
       } catch (Exception e) { 
-        JOptionPane.showMessageDialog(frame, "Error: /n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
       }
       fileURI = name;
       prevText = typeArea.getText();
@@ -572,6 +585,52 @@ public class TypePro extends JFrame implements KeyListener {
   
   public void keyTyped(KeyEvent e) {
     //ignore
+  }
+  
+  public void update() {
+    try {
+      final File currentFile = new File(TypePro.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+      URL website = null;
+      if (currentFile.getName().endsWith(".exe")) {
+        website = new URL("https://github.com/PandemicMoon/TypePro/blob/master/typepro.exe?raw=true");
+      } else if (currentFile.getName().endsWith(".jar")) {
+        website = new URL("https://github.com/PandemicMoon/TypePro/blob/master/typepro.jar?raw=true");
+      }
+      ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+      FileOutputStream fos = new FileOutputStream(TypePro.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
+      fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+    try {
+      restart();
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(frame, "Failed to restart. \nError: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+  
+  public void restart() throws Exception
+  {
+    final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+    final File currentFile = new File(TypePro.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+    
+    /* Build command: java -jar application.jar OR java -cp application.exe TypePro */
+    final ArrayList<String> command = new ArrayList<String>();
+    
+    /* is it a jar OR exe file? */
+    if (currentFile.getName().endsWith(".jar")) {
+      command.add(javaBin);
+      command.add("-jar");
+      command.add(currentFile.getPath());
+    } else {
+      command.add(javaBin);
+      command.add("-cp");
+      command.add(currentFile.getPath());
+      command.add("TypePro");
+    }
+    final ProcessBuilder builder = new ProcessBuilder(command);
+    builder.start();
+    System.exit(0);
   }
   
 }
