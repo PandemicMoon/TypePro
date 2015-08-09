@@ -16,7 +16,8 @@ import java.nio.channels.*;
 
 public class TypePro extends JFrame implements KeyListener {
   
-  private String programName = "Type Pro - Version 1.2.7"; 
+  private String version = "1.2.8";
+  private String programName = "Type Pro - Version " + version; 
   private String fileName;
   private JFrame frame;
   private JTextArea typeArea;
@@ -55,12 +56,17 @@ public class TypePro extends JFrame implements KeyListener {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     } catch (Exception e) { 
-      JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame, "Setting look and feel failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
     }
-    initFile();
+    initFrame();
+    try {
+      checkForUpdate();
+    } catch (Exception e) { 
+      JOptionPane.showMessageDialog(frame, "Checking for update failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+    }
   }
   
-  public void initFile() {
+  public void initFrame() {
     frame = new JFrame();
     URL url = this.getClass().getResource("logo.png");
     frame.setIconImage(new ImageIcon(url).getImage());
@@ -184,7 +190,7 @@ public class TypePro extends JFrame implements KeyListener {
         try {
           typeArea.print();
         } catch (Exception e) { 
-          JOptionPane.showMessageDialog(frame, "Error: /n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "Printing failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
     });
@@ -298,7 +304,7 @@ public class TypePro extends JFrame implements KeyListener {
         try {
           openWebpage(new URL("https://github.com/PandemicMoon/TypePro/issues"));
         } catch (Exception e) { 
-          JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(frame, "Opening help page failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
         }
       }
     });
@@ -410,6 +416,27 @@ public class TypePro extends JFrame implements KeyListener {
     frame.setVisible(true);
   }
   
+  public void checkForUpdate() throws Exception {
+    URL file = new URL("https://raw.githubusercontent.com/PandemicMoon/TypePro/master/src/TypePro.java");
+    BufferedReader in = new BufferedReader(new InputStreamReader(file.openStream()));
+    
+    String inputLine;
+    String versionLine = null;
+    while ((inputLine = in.readLine()) != null && versionLine == null) {
+      if (inputLine.contains("private String version ="))
+        versionLine = inputLine;
+    }
+    in.close();
+    if (versionLine != null) {
+      versionLine = versionLine.substring(versionLine.indexOf("\"")+1);
+      String ver = versionLine.substring(0, versionLine.indexOf("\""));
+      if (isNewerVersion(ver))
+        update();
+    } else {
+      JOptionPane.showMessageDialog(frame, "Could not check latest version number.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+  
   public void save(Boolean override) {
     String name = fileURI;
     Boolean changed = false;
@@ -443,7 +470,7 @@ public class TypePro extends JFrame implements KeyListener {
         typeArea.write(out);
         out.close();
       } catch (Exception e) { 
-        JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Saving failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
       }
       fileURI = name;
       prevText = typeArea.getText();
@@ -479,7 +506,7 @@ public class TypePro extends JFrame implements KeyListener {
         }
         in.close();
       } catch (Exception e) { 
-        JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Opening failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
       }
       frame.setTitle(getTitle());
     }
@@ -581,7 +608,7 @@ public class TypePro extends JFrame implements KeyListener {
       try {
         typeArea.print();
       } catch (Exception ex) { 
-        JOptionPane.showMessageDialog(frame, "Error: /n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, "Printing failed. Error: /n" + e, "Error", JOptionPane.ERROR_MESSAGE);
       }
     } else if (e.getKeyCode() == KeyEvent.VK_F5) {
       insertDateAndTime();
@@ -605,7 +632,7 @@ public class TypePro extends JFrame implements KeyListener {
       FileOutputStream fos = new FileOutputStream(TypePro.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
       fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
     } catch (Exception e) {
-      JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame, "Update failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
     }
     try {
       restart();
@@ -655,6 +682,20 @@ public class TypePro extends JFrame implements KeyListener {
     } catch (URISyntaxException e) {
       e.printStackTrace();
     }
+  }
+  
+  public boolean isNewerVersion(String ver) {
+    for (int i = 0; i < version.length(); i++) {
+      if (version.substring(i, i+1).equals("."))
+        version = version.substring(0, i) + version.substring(i+1);
+    }
+    for (int i = 0; i < ver.length(); i++) {
+      if (ver.substring(i, i+1).equals("."))
+        ver = ver.substring(0, i) + ver.substring(i+1);
+    }
+    int versionint = Integer.parseInt(version);
+    int verint = Integer.parseInt(ver);
+    return verint > versionint;
   }
   
 }
