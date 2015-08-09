@@ -13,7 +13,7 @@ import java.net.URL;
 
 public class TypePro extends JFrame implements KeyListener {
   
-  private String programName = "Type Pro - Version 1.2.2"; 
+  private String programName = "Type Pro - Version 1.2.3"; 
   private String fileName;
   private JFrame frame;
   private JTextArea typeArea;
@@ -61,6 +61,7 @@ public class TypePro extends JFrame implements KeyListener {
     URL url = this.getClass().getResource("logo.png");
     frame.setIconImage(new ImageIcon(url).getImage());
     frame.setTitle(getTitle());
+    frame.setSize(900, 500);
     frame.setExtendedState(Frame.MAXIMIZED_BOTH);
     frame.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
     statusBarToggle = false;
@@ -259,8 +260,10 @@ public class TypePro extends JFrame implements KeyListener {
       public void actionPerformed(ActionEvent event) {
         if (typeArea.getWrapStyleWord() == true) {
           typeArea.setWrapStyleWord(false);
+          typeArea.setLineWrap(false);
         } else {
           typeArea.setWrapStyleWord(true);
+          typeArea.setLineWrap(true);
         }
       }
     });
@@ -337,36 +340,23 @@ public class TypePro extends JFrame implements KeyListener {
     
     frame.setJMenuBar(menu);
     
-    // Add a caretListener to q7+40 typeArea.
     typeArea.addCaretListener(new CaretListener() {
-      // Each time the caret is moved, it will trigger the listener and its method caretUpdate.
-      // It will then pass the event to the update method including the source of the event (which is our textarea control)
       public void caretUpdate(CaretEvent e) {
         JTextArea editArea = (JTextArea)e.getSource();
         
-        // Lets start with some default values for the line and column.
         int linenum = 1;
         int columnnum = 1;
         
-        // We create a try catch to catch any exceptions. We will simply ignore such an error for our demonstration.
         try {
-          // First we find the position of the caret. This is the number of where the caret is in relation to the start of the JTextArea
-          // in the upper left corner. We use this position to find offset values (eg what line we are on for the given position as well as
-          // what position that line starts on.
           int caretpos = editArea.getCaretPosition();
           linenum = editArea.getLineOfOffset(caretpos);
           
-          // We subtract the offset of where our line starts from the overall caret position.
-          // So lets say that we are on line 5 and that line starts at caret position 100, if our caret position is currently 106
-          // we know that we must be on column 6 of line 5.
           columnnum = caretpos - editArea.getLineStartOffset(linenum);
           
-          // We have to add one here because line numbers start at 0 for getLineOfOffset and we want it to start at 1 for display.
           linenum += 1;
         }
         catch(Exception ex) { }
         
-        // Once we know the position of the line and the column, pass it to a helper function for updating the status bar.
         statusLabel.setText("Line: " + linenum + ", Column: " + columnnum);
       }
     });
