@@ -10,11 +10,13 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import javax.swing.undo.*;
 import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.channels.*;
 
 public class TypePro extends JFrame implements KeyListener {
   
-  private String programName = "Type Pro - Version 1.2.6"; 
+  private String programName = "Type Pro - Version 1.2.7"; 
   private String fileName;
   private JFrame frame;
   private JTextArea typeArea;
@@ -53,7 +55,7 @@ public class TypePro extends JFrame implements KeyListener {
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     } catch (Exception e) { 
-      JOptionPane.showMessageDialog(frame, "Error: /n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
     }
     initFile();
   }
@@ -289,12 +291,15 @@ public class TypePro extends JFrame implements KeyListener {
     });
     
     help.setMnemonic(KeyEvent.VK_H);
-    help.setToolTipText("Read Help");
+    help.setToolTipText("Get Help");
     help.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent event) {
-        JOptionPane.showMessageDialog(frame, "Help Center coming soon.", "Type Pro Help", 
-                                      JOptionPane.QUESTION_MESSAGE/*, img*/);
+        try {
+          openWebpage(new URL("https://github.com/PandemicMoon/TypePro/issues"));
+        } catch (Exception e) { 
+          JOptionPane.showMessageDialog(frame, "Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE);
+        }
       }
     });
     
@@ -631,6 +636,25 @@ public class TypePro extends JFrame implements KeyListener {
     final ProcessBuilder builder = new ProcessBuilder(command);
     builder.start();
     System.exit(0);
+  }
+  
+  public static void openWebpage(URI uri) {
+    Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+      try {
+        desktop.browse(uri);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  
+  public static void openWebpage(URL url) {
+    try {
+      openWebpage(url.toURI());
+    } catch (URISyntaxException e) {
+      e.printStackTrace();
+    }
   }
   
 }
