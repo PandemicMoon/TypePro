@@ -64,15 +64,15 @@ public class TypePro extends JFrame implements KeyListener {
     }
     /*build the frame*/
     initFrame();
+    //open told to open file in args, open it
+    if (args.length > 0) {
+      open(args[0]);
+    }
     //check for updates
     try {
       checkForUpdate();
     } catch (Exception e) { 
       JOptionPane.showMessageDialog(frame, "Checking for update failed. Error: \n" + e, "Error", JOptionPane.ERROR_MESSAGE); //present caught errors
-    }
-    //open told to open file in args, open it
-    if (args.length > 0) {
-      open(args[0]);
     }
   }
   
