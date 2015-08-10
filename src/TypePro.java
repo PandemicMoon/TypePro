@@ -14,7 +14,7 @@ import java.nio.channels.*;
 public class TypePro extends JFrame implements KeyListener {
   
   /* define fields */
-  private String version = "1.3.0";
+  private String version = "1.3.1";
   private String programName = "Type Pro - Version " + version; 
   
   /* visual fields */
