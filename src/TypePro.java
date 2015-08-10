@@ -14,7 +14,7 @@ import java.nio.channels.*;
 public class TypePro extends JFrame implements KeyListener {
   
   /* define fields */
-  private String version = "1.3.1";
+  private String version = "1.3.2";
   private String programName = "Type Pro - Version " + version; 
   
   /* visual fields */
@@ -93,7 +93,6 @@ public class TypePro extends JFrame implements KeyListener {
     statusBarToggle = false;
     statusPanel = new JPanel();
     statusPanel.setBorder(new BevelBorder(BevelBorder.LOWERED));
-    frame.add(statusPanel, BorderLayout.SOUTH);
     statusPanel.setPreferredSize(new Dimension(frame.getWidth(), 16));
     statusPanel.setLayout(new BoxLayout(statusPanel, BoxLayout.X_AXIS));
     JLabel statusLabel = new JLabel();
@@ -698,14 +697,14 @@ public class TypePro extends JFrame implements KeyListener {
       command.add(javaBin);
       command.add("-jar");
       command.add(currentFile.getPath());
-      if (fileURI != null && fileURI != "")
+      if (fileURI != null && fileURI != "" && fileURI != "none")
         command.add(fileURI);
     } else {
       command.add(javaBin);
       command.add("-cp");
       command.add(currentFile.getPath());
       command.add("TypePro");
-      if (fileURI != null && fileURI != "")
+      if (fileURI != null && fileURI != "" && fileURI != "none")
         command.add(fileURI);
     }
     //build commands and exit
