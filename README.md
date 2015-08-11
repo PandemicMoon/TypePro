@@ -2,14 +2,14 @@
 Your text file editing just got easier.
 
 ##Downloads
-###Installer
- - [Windows](https://github.com/PandemicMoon/TypePro/blob/master/Setup.exe?raw=true) (.exe)*
+###Installer*
+ - [Windows](https://github.com/PandemicMoon/TypePro/blob/master/Setup.exe?raw=true) (.exe)
 
 ###Direct
  - [Windows](https://github.com/PandemicMoon/TypePro/blob/master/typepro.exe?raw=true) (.exe)
  - [Os X](https://github.com/PandemicMoon/TypePro/blob/master/typepro.jar?raw=true) (.jar)
 
- **Note: Installer may not contain the latest version, please allow TypePro to update.*
+**Note: Installer may not contain the latest version, please allow TypePro to update.*
  
 ##Keyboard Shortcuts
 | Shortcut | Effect                |
