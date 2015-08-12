@@ -9,7 +9,7 @@ Your text file editing just got easier.
  - [Windows](https://github.com/PandemicMoon/TypePro/blob/master/typepro.exe?raw=true) (.exe)
  - [Os X](https://github.com/PandemicMoon/TypePro/blob/master/typepro.jar?raw=true) (.jar)
 
-**Note: Installer may not contain the latest version, please allow TypePro to update.*
+**Note: Installer may not contain the latest version, please allow TypePro to update by running it as an administrator.*
  
 ##Keyboard Shortcuts
 | Shortcut | Effect                |
