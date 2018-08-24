@@ -1,19 +1,19 @@
-#TypePro
+# TypePro
 Your text file editing just got easier.
 
-##Downloads
-###Installer*
- - [Windows](https://github.com/PandemicMoon/TypePro/blob/master/Setup.exe?raw=true) (.exe)
+## Downloads
+### Installer*
+ - [Windows](https://github.com/keith-cr/TypePro/blob/master/Setup.exe?raw=true) (.exe)
 
-###Direct
- - [Windows](https://github.com/PandemicMoon/TypePro/blob/master/typepro.exe?raw=true) (.exe)
- - [Os X](https://github.com/PandemicMoon/TypePro/blob/master/typepro.jar?raw=true) (.jar)
+### Direct
+ - [Windows](https://github.com/keith-cr/TypePro/blob/master/typepro.exe?raw=true) (.exe)
+ - [Os X](https://github.com/keith-cr/TypePro/blob/master/typepro.jar?raw=true) (.jar)
 
 **Note: Installer may not contain the latest version, please allow TypePro to update by running it as an administrator.*
  
-##Keyboard Shortcuts
+## Keyboard Shortcuts
 | Shortcut | Effect                |
-|----------|-----------------------|
+| -------- | --------------------- |
 | CTRL + C | Copy                  |
 | CTRL + X | Cut                   |
 | CTRL + V | Paste                 |
